@@ -5,8 +5,16 @@ use std::io::Write;
 use anyhow::Context;
 use carlog::Status;
 use console;
-use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
-use portable_pty::{CommandBuilder, PtySize, native_pty_system};
+use indicatif::{
+    ProgressBar,
+    ProgressDrawTarget,
+    ProgressStyle,
+};
+use portable_pty::{
+    CommandBuilder,
+    PtySize,
+    native_pty_system,
+};
 
 /// Logger for handling output with cargo-style progress and status messages.
 ///
@@ -356,8 +364,8 @@ where
 
     // Task to read from PTY (combines stdout and stderr)
     // PTY reader is blocking, so we use spawn_blocking
-    // Allow excessive nesting: inherent to async spawn + spawn_blocking + loop +
-    // match pattern
+    // Allow excessive nesting: inherent to async spawn + spawn_blocking + loop
+    // + match pattern
     #[allow(clippy::excessive_nesting)]
     let pty_task = tokio::spawn(async move {
         tokio::task::spawn_blocking(move || {
@@ -508,8 +516,9 @@ where
     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
 
     // Wait for PTY reading to complete (with timeout to prevent hanging)
-    // If timeout occurs but process has exited, use collected output as fallback
-    // On Windows, use a very short timeout since blocking reads may never return
+    // If timeout occurs but process has exited, use collected output as
+    // fallback On Windows, use a very short timeout since blocking reads
+    // may never return
     let timeout_duration = if cfg!(windows) {
         std::time::Duration::from_millis(500)
     } else {
@@ -521,11 +530,12 @@ where
             result.context("Failed to join PTY task")??
         }
         Err(_) => {
-            // Timeout occurred - this commonly happens on Windows where blocking
-            // reads in spawn_blocking cannot be cancelled. Since the process has
-            // already exited, we use the output we collected as it arrived through
-            // the channel. The blocking task will continue running in the background
-            // but won't affect the test outcome.
+            // Timeout occurred - this commonly happens on Windows where
+            // blocking reads in spawn_blocking cannot be cancelled.
+            // Since the process has already exited, we use the
+            // output we collected as it arrived through
+            // the channel. The blocking task will continue running in the
+            // background but won't affect the test outcome.
             // Close the channel to allow render_task to complete
             drop(tx_clone);
             collected_output.lock().unwrap().clone()

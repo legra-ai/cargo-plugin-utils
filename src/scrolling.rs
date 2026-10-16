@@ -70,7 +70,8 @@ mod tests {
     #[test]
     fn test_get_terminal_size() {
         // Should return Some on a real terminal, None otherwise
-        // We can't easily test the exact values, but we can test it doesn't panic
+        // We can't easily test the exact values, but we can test it doesn't
+        // panic
         let _size = get_terminal_size();
     }
 

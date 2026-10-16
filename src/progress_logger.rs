@@ -2,7 +2,10 @@
 
 use std::io::IsTerminal;
 
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{
+    ProgressBar,
+    ProgressStyle,
+};
 
 /// Logger for handling output with quiet mode and cargo-style progress bars.
 ///

@@ -2,7 +2,10 @@
 
 use std::env;
 
-use anyhow::{Context, Result};
+use anyhow::{
+    Context,
+    Result,
+};
 use cargo_metadata::MetadataCommand;
 
 /// Detect GitHub repository from environment or git remote.
@@ -81,7 +84,8 @@ pub fn find_package(manifest_path: Option<&std::path::Path>) -> Result<cargo_met
     // Try to find the package in the current working directory
     let current_dir = std::env::current_dir().context("Failed to get current directory")?;
 
-    // Canonicalize current directory and all package directories, then find match
+    // Canonicalize current directory and all package directories, then find
+    // match
     let canonical_current_dir = current_dir.canonicalize().ok();
     let packages_with_dirs: Vec<_> = metadata
         .packages
@@ -105,8 +109,8 @@ pub fn find_package(manifest_path: Option<&std::path::Path>) -> Result<cargo_met
         return Ok(pkg.clone());
     }
 
-    // Also try matching the manifest path directly (for cases where Cargo.toml is
-    // in current dir)
+    // Also try matching the manifest path directly (for cases where Cargo.toml
+    // is in current dir)
     let current_manifest = current_dir.join("Cargo.toml");
     let canonical_current_manifest = current_manifest.canonicalize().ok();
     let packages_with_manifests: Vec<_> = metadata
@@ -136,9 +140,9 @@ pub fn find_package(manifest_path: Option<&std::path::Path>) -> Result<cargo_met
 
     // If we're in a workspace without a root package, check for default-members
     // This follows cargo's behavior: use default-members if available
-    // workspace_default_members implements Deref<Target = [PackageId]>, so we can
-    // use it as a slice It may not be available in older Cargo versions, so we
-    // check if it's available first
+    // workspace_default_members implements Deref<Target = [PackageId]>, so we
+    // can use it as a slice It may not be available in older Cargo
+    // versions, so we check if it's available first
     if metadata.workspace_default_members.is_available()
         && !metadata.workspace_default_members.is_empty()
         && let Some(first_default_id) = metadata.workspace_default_members.first()
@@ -266,9 +270,11 @@ mod tests {
     #[test]
     fn test_find_package_in_current_dir() {
         // This test requires being in a directory with a Cargo.toml
-        // We'll test that it doesn't panic, but actual success depends on environment
+        // We'll test that it doesn't panic, but actual success depends on
+        // environment
         let result = find_package(None);
-        // Either succeeds (if in a cargo project) or fails with a descriptive error
+        // Either succeeds (if in a cargo project) or fails with a descriptive
+        // error
         if let Err(e) = result {
             assert!(e.to_string().contains("package") || e.to_string().contains("manifest"));
         }
