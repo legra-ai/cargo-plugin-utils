@@ -2,10 +2,7 @@
 
 use std::env;
 
-use anyhow::{
-    Context,
-    Result,
-};
+use anyhow::{Context, Result};
 use cargo_metadata::MetadataCommand;
 
 /// Detect GitHub repository from environment or git remote.

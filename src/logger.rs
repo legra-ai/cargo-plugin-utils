@@ -5,16 +5,8 @@ use std::io::Write;
 use anyhow::Context;
 use carlog::Status;
 use console;
-use indicatif::{
-    ProgressBar,
-    ProgressDrawTarget,
-    ProgressStyle,
-};
-use portable_pty::{
-    CommandBuilder,
-    PtySize,
-    native_pty_system,
-};
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
+use portable_pty::{CommandBuilder, PtySize, native_pty_system};
 
 /// Logger for handling output with cargo-style progress and status messages.
 ///
