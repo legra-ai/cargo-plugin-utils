@@ -25,12 +25,11 @@ dependencies = [
 
 [[package]]
 name = "async-fs-io"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e80fff4ed286521fad46c96e60dce5c868c792b947de687f4c46d264203a8ed7"
+checksum = "9cd5127049638d40084d42325fd9afcaa3a4bae127351244bcba9051cbf6a930"
 dependencies = [
  "fs2",
- "rhusky 0.0.6",
  "thiserror 2.0.21",
  "tokio",
  "uuid",
@@ -113,7 +112,7 @@ dependencies = [
  "gix",
  "indicatif",
  "portable-pty",
- "rhusky 1.0.2",
+ "rhusky",
  "tempfile",
  "tokio",
 ]
@@ -1413,15 +1412,9 @@ checksum = "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
 
 [[package]]
 name = "rhusky"
-version = "0.0.6"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd58f5095f1eaaee85441008005db48773976f5bb85bedd35d6cf3f04db8ec4b"
-
-[[package]]
-name = "rhusky"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3214d6aa073af2bdfe58d4d487f1c525ea7b00cab0ceb4183e9fb5b87aec514"
+checksum = "9548a7a5c007925ce1965a8a0bbecb34430ab255154c050c7275aedd19788c79"
 dependencies = [
  "async-fs-io",
  "tokio",

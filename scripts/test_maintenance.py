@@ -42,10 +42,24 @@ class MaintenancePolicyTests(unittest.TestCase):
 
     def test_package_contains_integration_tests_and_licenses(self):
         package = tomllib.loads((ROOT / 'Cargo.toml').read_text())['package']
+        self.assertIn('build.rs', package['include'])
         self.assertIn('tests/**', package['include'])
         self.assertIn('LICENSE-MIT', package['include'])
         self.assertIn('LICENSE-APACHE', package['include'])
         self.assertTrue(any((ROOT / 'tests').glob('*.rs')))
+
+
+class BuildOwnershipTests(unittest.TestCase):
+    def test_hook_dependency_excludes_recursive_installers(self):
+        manifest = tomllib.loads((ROOT / 'Cargo.toml').read_text())
+        requirement = manifest['build-dependencies']['rhusky']
+        self.assertRegex(requirement, r'^2\.[0-9]+\.[0-9]+$')
+        self.assertGreaterEqual(tuple(map(int, requirement.split('.'))), (2, 0, 1))
+
+    def test_hook_ownership_is_an_explicit_local_argument(self):
+        self.assertIn('install_from_build_script(env!("CARGO_MANIFEST_DIR"))',
+                      (ROOT / 'build.rs').read_text())
+        self.assertNotIn('RHUSKY_REPOSITORY_ROOT', (ROOT / '.cargo/config.toml').read_text())
 
 
 if __name__ == '__main__':
