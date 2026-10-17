@@ -23,6 +23,7 @@ class MaintenancePolicyTests(unittest.TestCase):
         self.assertNotIn('include: scope', config)
         self.assertIn('prefix: "build(deps)"', config)
         self.assertIn('security-updates:', config)
+        self.assertIn('dependency-type: all', config)
         merge = (ROOT / '.github/workflows/dependabot-merge.yml').read_text()
         self.assertIn('merge-tested-dependabot@', merge)
         self.assertIn('actions/create-github-app-token@', merge)
