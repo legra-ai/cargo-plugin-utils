@@ -337,6 +337,14 @@ where
         .openpty(pty_size)
         .context("Failed to create PTY")?;
 
+    // ConPTY inherits a cursor and asks the terminal for its initial position.
+    // The private PTY starts at row/column one; its reader must answer DSR.
+    #[cfg(windows)]
+    let mut input = pty
+        .master
+        .take_writer()
+        .context("Failed to open PTY input")?;
+
     // Spawn command in PTY
     let mut child = pty
         .slave
@@ -368,12 +376,20 @@ where
         tokio::task::spawn_blocking(move || {
             let mut full_output = Vec::new();
             let mut buffer = vec![0u8; 4096];
+            #[cfg(windows)]
+            let mut cursor_query = crate::cursor_query::CursorQuery::default();
 
             loop {
                 match reader.read(&mut buffer) {
                     Ok(0) => break, // EOF
                     Ok(bytes_read) => {
                         let chunk = &buffer[..bytes_read];
+                        #[cfg(windows)]
+                        for _ in 0..cursor_query.consume(chunk) {
+                            input
+                                .write_all(b"\x1b[1;1R")
+                                .context("Failed to answer ConPTY cursor query")?;
+                        }
                         full_output.extend_from_slice(chunk);
                         let _ = tx.send(chunk.to_vec());
                     }

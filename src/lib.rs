@@ -20,3 +20,6 @@ pub use logger::{
 };
 pub use progress_logger::ProgressLogger;
 pub use tty::should_show_progress;
+
+#[cfg(any(windows, test))]
+mod cursor_query;
