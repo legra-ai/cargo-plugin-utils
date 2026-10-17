@@ -337,11 +337,22 @@ where
         .openpty(pty_size)
         .context("Failed to create PTY")?;
 
+    // ConPTY inherits a cursor and asks the terminal for its initial position.
+    // The private PTY starts at row/column one; its reader must answer DSR.
+    #[cfg(windows)]
+    let mut input = pty
+        .master
+        .take_writer()
+        .context("Failed to open PTY input")?;
+
     // Spawn command in PTY
     let mut child = pty
         .slave
         .spawn_command(cmd)
         .context("Failed to spawn command in PTY")?;
+
+    // The parent must not keep the slave open: its last handle owns EOF.
+    drop(pty.slave);
 
     // Get handles for stdout and stderr from PTY
     // We need to keep a reference to the master to close it later
@@ -355,12 +366,6 @@ where
 
     // Channel to coordinate rendering (send raw bytes to preserve ANSI codes)
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<Vec<u8>>();
-    // Keep a clone of tx to close the channel if we timeout
-    let tx_clone = tx.clone();
-
-    // Collect output as it arrives (for timeout fallback)
-    let collected_output = std::sync::Arc::new(std::sync::Mutex::new(Vec::<u8>::new()));
-    let collected_output_clone = collected_output.clone();
 
     // Task to read from PTY (combines stdout and stderr)
     // PTY reader is blocking, so we use spawn_blocking
@@ -371,17 +376,21 @@ where
         tokio::task::spawn_blocking(move || {
             let mut full_output = Vec::new();
             let mut buffer = vec![0u8; 4096];
+            #[cfg(windows)]
+            let mut cursor_query = crate::cursor_query::CursorQuery::default();
 
             loop {
                 match reader.read(&mut buffer) {
                     Ok(0) => break, // EOF
                     Ok(bytes_read) => {
                         let chunk = &buffer[..bytes_read];
-                        full_output.extend_from_slice(chunk);
-                        // Also collect in shared buffer for timeout fallback
-                        if let Ok(mut collected) = collected_output_clone.lock() {
-                            collected.extend_from_slice(chunk);
+                        #[cfg(windows)]
+                        for _ in 0..cursor_query.consume(chunk) {
+                            input
+                                .write_all(b"\x1b[1;1R")
+                                .context("Failed to answer ConPTY cursor query")?;
                         }
+                        full_output.extend_from_slice(chunk);
                         let _ = tx.send(chunk.to_vec());
                     }
                     Err(err) => {
@@ -389,9 +398,6 @@ where
                         let error_msg = format!("<pty read error: {}>", err);
                         let error_bytes = error_msg.as_bytes();
                         full_output.extend_from_slice(error_bytes);
-                        if let Ok(mut collected) = collected_output_clone.lock() {
-                            collected.extend_from_slice(error_bytes);
-                        }
                         let _ = tx.send(error_bytes.to_vec());
                         break;
                     }
@@ -511,51 +517,9 @@ where
     // return
     drop(master);
 
-    // On Windows, give a small delay to allow the reader to see EOF
-    #[cfg(windows)]
-    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-
-    // Wait for PTY reading to complete (with timeout to prevent hanging)
-    // If timeout occurs but process has exited, use collected output as fallback
-    // On Windows, use a very short timeout since blocking reads may never return
-    let timeout_duration = if cfg!(windows) {
-        std::time::Duration::from_millis(500)
-    } else {
-        std::time::Duration::from_secs(10)
-    };
-    let pty_output = match tokio::time::timeout(timeout_duration, pty_task).await {
-        Ok(result) => {
-            // Task completed, get the result
-            result.context("Failed to join PTY task")??
-        }
-        Err(_) => {
-            // Timeout occurred - this commonly happens on Windows where blocking
-            // reads in spawn_blocking cannot be cancelled. Since the process has
-            // already exited, we use the output we collected as it arrived through
-            // the channel. The blocking task will continue running in the background
-            // but won't affect the test outcome.
-            // Close the channel to allow render_task to complete
-            drop(tx_clone);
-            collected_output.lock().unwrap().clone()
-        }
-    };
-    // Wait for render task with timeout to prevent hanging
-    // Use very short timeout on Windows where operations may hang
-    let render_timeout = if cfg!(windows) {
-        std::time::Duration::from_millis(500)
-    } else {
-        std::time::Duration::from_secs(5)
-    };
-    let (_final_output_ring, was_term) =
-        match tokio::time::timeout(render_timeout, render_task).await {
-            Ok(result) => result.context("Failed to join render task")?,
-            Err(_) => {
-                // Render task timed out - this can happen on Windows where
-                // blocking operations may not complete. We'll continue without
-                // the final render state.
-                (Vec::new(), is_term)
-            }
-        };
+    // EOF, rather than a timeout or a second output buffer, completes capture.
+    let pty_output = pty_task.await.context("Failed to join PTY task")??;
+    let (_final_output_ring, was_term) = render_task.await.context("Failed to join render task")?;
 
     // For now, treat all PTY output as stderr (we can separate later if needed)
     // In PTY mode, stdout and stderr are combined

@@ -54,18 +54,18 @@ cargo test test_name -- --test-threads=1
 
 ```bash
 # Format check (requires nightly)
-cargo +nightly fmt --all -- --check
+sh scripts/fmt.sh --check
 
 # Format code
-cargo +nightly fmt --all
+sh scripts/fmt.sh
 
 # Clippy (requires nightly)
-cargo +nightly clippy --all-targets --all-features -- -D warnings -W missing-docs
+cargo clippy --locked --all-targets --all-features -- -D warnings -W missing-docs
 ```
 
 ## Code Style
 
-- **Rust Edition**: 2024, MSRV 1.92.0
+- **Rust Edition**: 2024, MSRV 1.93.0
 - **Formatting**: Uses nightly rustfmt with vertical imports grouped
   by std/external/crate (see `rustfmt.toml`)
 - **Clippy**: Nightly with strict settings (max 120 lines/function,
@@ -149,3 +149,9 @@ Configuration is in `.markdownlint.json`:
 ```bash
 markdownlint '**/*.md' --ignore node_modules --ignore target
 ```
+
+## Maintenance pipeline
+
+CI is the sole release path; see `.github/PUBLISH.md`. Its daily
+schedule recovers interrupted releases. PRs need no publishing token.
+Use the pinned compiler and `scripts/fmt.sh` in local hooks and CI.
