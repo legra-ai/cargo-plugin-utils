@@ -14,19 +14,7 @@ homepage = "https://github.com/legra-ai/cargo-plugin-utils"
 rust-version = "1.93.0"
 publish = true
 
-exclude = [
-    ".cargo/",
-    ".cargo-husky/",
-    ".clippy.toml",
-    ".cursor/",
-    ".github/",
-    ".gitignore",
-    ".rust-toolchain.toml",
-    ".vscode/",
-    "cog.toml",
-    "rustfmt.toml",
-    "scripts/",
-]
+include = ["src/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE-MIT", "LICENSE-APACHE"]
 
 [dependencies]
 anyhow = "1.0.104"
