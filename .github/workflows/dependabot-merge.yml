@@ -16,6 +16,6 @@ jobs:
           private-key: ${{ secrets.RELEASE_WRITER_APP_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
-      - uses: legra-ai/github-actions/.github/actions/merge-tested-dependabot@f405b77142994c765a684143ff9bfc556a29b569
+      - uses: legra-ai/github-actions/.github/actions/merge-tested-dependabot@0bead4673cfb56ba38b46fa3661b053572c425f6
         with:
           token: ${{ steps.writer.outputs.token }}
