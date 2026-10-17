@@ -14,7 +14,7 @@ homepage = "https://github.com/legra-ai/cargo-plugin-utils"
 rust-version = "1.93.0"
 publish = true
 
-include = ["src/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE-MIT", "LICENSE-APACHE"]
+include = ["src/**", "tests/**", "build.rs", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE-MIT", "LICENSE-APACHE"]
 
 [dependencies]
 anyhow = "1.0.104"
@@ -35,7 +35,7 @@ tokio = { version = "1", features = [
 ] }
 
 [build-dependencies]
-rhusky = "1.0.2"
+rhusky = "2.0.0"
 
 [dev-dependencies]
 tempfile = "3.27"
