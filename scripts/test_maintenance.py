@@ -12,6 +12,17 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class MaintenancePolicyTests(unittest.TestCase):
+    def test_shared_policy_updates_are_grouped_without_semver_filters(self):
+        config = (ROOT / '.github/dependabot.yml').read_text()
+        actions = config.split('  - package-ecosystem: github-actions\n', 1)[1]
+        self.assertIn('      shared-policy:\n', actions)
+        self.assertLess(actions.index('      shared-policy:\n'),
+                        actions.index('      compatible-updates:\n'))
+        group = actions.split('      shared-policy:\n', 1)[1].split('      compatible-updates:\n', 1)[0]
+        self.assertIn('patterns: ["legra-ai/github-actions*"]', group)
+        self.assertIn('applies-to: version-updates', group)
+        self.assertNotIn('update-types:', group)
+
     def test_completion_gate_rejects_every_incomplete_pipeline_result(self):
         workflow = (ROOT / '.github/workflows/ci.yml').read_text()
         self.assertIn('  test:\n', workflow)
