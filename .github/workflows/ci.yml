@@ -16,7 +16,7 @@ jobs:
       - run: python3 -m unittest discover -s scripts -p 'test_*.py'
   ci:
     needs: prepare
-    uses: legra-ai/github-actions/.github/workflows/cargo-maintenance.yml@3d81bf46b840ade0eb37eaeac5b216f0edb41ad9
+    uses: legra-ai/github-actions/.github/workflows/cargo-maintenance.yml@7161b3b0fb80eb36ff9d92faccfced2a8001fe40
     with:
       crate-name: cargo-plugin-utils
       kind: library
