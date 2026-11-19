@@ -25,7 +25,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-cargo-plugin-utils = "0.0.36"
+cargo-plugin-utils = "0.0.37"
 ```
 
 ## Development
