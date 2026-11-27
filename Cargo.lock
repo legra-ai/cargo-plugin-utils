@@ -103,7 +103,7 @@ dependencies = [
 
 [[package]]
 name = "cargo-plugin-utils"
-version = "0.0.43"
+version = "0.0.44"
 dependencies = [
  "anyhow",
  "cargo_metadata",
